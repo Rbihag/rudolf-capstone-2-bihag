@@ -7,6 +7,7 @@ const {
     setAdmin,
     deleteaUser,
     updatedUser,
+    saveAddress,
     blockUser,
     unblockUser,
     handleRefreshToken,
@@ -19,6 +20,7 @@ const {
     userCart, //Add to cart
     getUserCart,
     emptyCart,
+    applyCoupon,
     createOrder,
     getOrders,
     updateOrderStatus,
@@ -38,6 +40,7 @@ router.put("/password", authMiddleware, updatePassword);
 router.post("/login", loginUserCtrl);
 router.post("/admin-login", loginAdmin);
 router.post("/cart", authMiddleware, userCart);  //Add to cart
+router.post("/cart/applycoupon", authMiddleware, applyCoupon);
 router.post("/cart/cash-order", authMiddleware, createOrder);
 router.get("/all-users", getallUser);
 router.get("/get-orders", authMiddleware, getOrders);
@@ -58,6 +61,7 @@ router.put(
     updateOrderStatus
 );
 router.put("/edit-user", authMiddleware, updatedUser);
+router.put("/save-address", authMiddleware, saveAddress);
 router.patch("/edit-user/:id", authMiddleware, isAdmin, setAdmin);
 
 router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);

@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const Product = require("../models/productModel");
 const Cart = require("../models/cartModel");
+const Coupon = require("../models/couponModel");
 const Order = require("../models/orderModel");
 const uniqid = require("uniqid");
 
@@ -178,6 +179,26 @@ const setAdmin = asyncHandler(async (req, res) => {
         res.json({
             message: "User is now an Admin",
         });
+    } catch (error) {
+        throw new Error(error);
+    }
+});
+
+
+// save user address
+const saveAddress = asyncHandler(async (req, res, next) => {
+    const { _id } = req.user;
+    try {
+        const updatedUser = await User.findByIdAndUpdate(
+            _id,
+            {
+                address: req?.body?.address,
+            },
+            {
+                new: true,
+            }
+        );
+        res.json(updatedUser);
     } catch (error) {
         throw new Error(error);
     }
@@ -407,6 +428,30 @@ const emptyCart = asyncHandler(async (req, res) => {
 });
 
 
+const applyCoupon = asyncHandler(async (req, res) => {
+    const { coupon } = req.body;
+    const { _id } = req.user;
+    const validCoupon = await Coupon.findOne({ name: coupon });
+    if (validCoupon === null) {
+        throw new Error("Invalid Coupon");
+    }
+    const user = await User.findOne({ _id });
+    let { cartTotal } = await Cart.findOne({
+        orderby: user._id,
+    }).populate("products.product");
+    let totalAfterDiscount = (
+        cartTotal -
+        (cartTotal * validCoupon.discount) / 100
+    ).toFixed(2);
+    await Cart.findOneAndUpdate(
+        { orderby: user._id },
+        { totalAfterDiscount },
+        { new: true }
+    );
+    res.json(totalAfterDiscount);
+});
+
+
 // order functionality
 const createOrder = asyncHandler(async (req, res) => {
     const { COD, couponApplied } = req.body;
@@ -533,9 +578,11 @@ module.exports = {
     setAdmin,
     loginAdmin,
     getWishlist,
+    saveAddress,
     userCart,
     getUserCart,
     emptyCart,
+    applyCoupon,
     createOrder,
     getOrders,
     updateOrderStatus,
